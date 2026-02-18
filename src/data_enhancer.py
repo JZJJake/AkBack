@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from datetime import datetime, timedelta
 from src.config import PROCESSED_DIR, LOG_DIR
+from src.utils.tdx_runner import TdxServerManager
 
 # Setup logging
 logging.basicConfig(
@@ -158,18 +159,30 @@ class DataEnhancer:
 
     def run_all(self, days_limit=30):
         """Run enhancement for all stocks."""
-        files = self.get_all_stock_files()
-        print(f"Starting Data Enhancement for {len(files)} stocks (limit={days_limit} days)...")
-        print("Warning: Full history enhancement is slow; considering recent days only.")
 
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            future_to_file = {executor.submit(self.enhance_stock, f, days_limit): f for f in files}
+        # Start TDX Server
+        server = TdxServerManager()
+        try:
+            server.start()
+        except Exception as e:
+            logging.error(f"Cannot start TDX Server: {e}")
+            return
 
-            with tqdm(total=len(files), desc="Enhancing Data") as pbar:
-                for future in as_completed(future_to_file):
-                    symbol, status = future.result()
-                    # Optional: pbar.set_postfix_str(f"{symbol}: {status}")
-                    pbar.update(1)
+        try:
+            files = self.get_all_stock_files()
+            print(f"Starting Data Enhancement for {len(files)} stocks (limit={days_limit} days)...")
+            print("Warning: Full history enhancement is slow; considering recent days only.")
+
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+                future_to_file = {executor.submit(self.enhance_stock, f, days_limit): f for f in files}
+
+                with tqdm(total=len(files), desc="Enhancing Data") as pbar:
+                    for future in as_completed(future_to_file):
+                        symbol, status = future.result()
+                        # Optional: pbar.set_postfix_str(f"{symbol}: {status}")
+                        pbar.update(1)
+        finally:
+            server.stop()
 
 if __name__ == "__main__":
     enhancer = DataEnhancer()

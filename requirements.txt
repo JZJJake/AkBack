@@ -5,3 +5,4 @@ fastparquet
 tqdm
 requests
 numpy
+matplotlib
