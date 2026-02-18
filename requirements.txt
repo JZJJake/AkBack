@@ -3,3 +3,5 @@ pandas
 pyarrow
 fastparquet
 tqdm
+requests
+numpy
