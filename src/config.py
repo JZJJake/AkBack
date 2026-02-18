@@ -31,3 +31,8 @@ COLUMN_MAPPING = {
 
 # Concurrency settings
 MAX_WORKERS = 4  # Adjust based on system capabilities and API limits
+
+# Trading Constants
+COMMISSION_RATE = 0.0003  # 0.03%
+MIN_COMMISSION = 5.0      # 5 RMB
+STAMP_DUTY = 0.0005       # 0.05% (charged only on sells)
