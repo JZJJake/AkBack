@@ -1,0 +1,5 @@
+akshare
+pandas
+pyarrow
+fastparquet
+tqdm
